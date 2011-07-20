@@ -73,14 +73,8 @@ public class ObjGuide {
 	public void update() {
 		HkObjQuery hkObjQuery = (HkObjQuery) HaloUtil.getBean("hkObjQuery");
 		UpdateParam updateParam = new UpdateParam("userid", 1);
-		// 设置需要修改的列
-		updateParam.setUpdateColumns(new String[] { "gender", "createtime",
-				"nick" });
-		// 设置sql where
-		updateParam.setWhere("nick=?");
-		// 设置修改列与where条件的对应的参数
-		updateParam
-				.setParams(new Object[] { 1, new Date(), "akweiwei", "aaa" });
+		updateParam.init(new String[] { "gender", "createtime", "nick" },
+				"nick=?", new Object[] { 1, new Date(), "akweiwei", "aaa" });
 		// update
 		hkObjQuery.update(updateParam, TestUser.class);
 	}

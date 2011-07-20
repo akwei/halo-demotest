@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context" xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:jee="http://www.springframework.org/schema/jee" xmlns:jms="http://www.springframework.org/schema/jms"
+	xmlns:lang="http://www.springframework.org/schema/lang" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+		http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.0.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	<!-- 进行sql 调试使用 -->
+	<bean class="com.hk.frame.dao.DaoDebugMode" lazy-init="false">
+		<property name="sqlDeubg" value="true" />
+	</bean>
+	<!-- 配饰数据库连接池 -->
+	<bean id="dataSource" class="com.hk.frame.datasource.HkDataSourceWrapper">
+		<property name="dataSourceMap">
+			<map>
+				<!-- 如果是mysql数据库 要以mysql_开头，如果是db2，就以db2_开头 -->
+				<entry key="mysql_test0">
+					<bean class="com.mchange.v2.c3p0.ComboPooledDataSource">
+						<property name="driverClass" value="com.mysql.jdbc.Driver" />
+						<property name="jdbcUrl" value="jdbc:mysql://192.168.157.132:3306/test0?useUnicode=true&amp;characterEncoding=UTF-8" />
+						<property name="user" value="root" />
+						<property name="password" value="boseeandbokee" />
+						<property name="maxStatements" value="200" />
+						<property name="idleConnectionTestPeriod" value="60" />
+						<property name="maxPoolSize" value="200" />
+						<property name="initialPoolSize" value="20" />
+						<property name="minPoolSize" value="20" />
+					</bean>
+				</entry>
+				<entry key="mysql_test1">
+					<bean class="com.mchange.v2.c3p0.ComboPooledDataSource">
+						<property name="driverClass" value="com.mysql.jdbc.Driver" />
+						<property name="jdbcUrl" value="jdbc:mysql://192.168.157.132:3306/test1?useUnicode=true&amp;characterEncoding=UTF-8" />
+						<property name="user" value="root" />
+						<property name="password" value="boseeandbokee" />
+						<property name="maxStatements" value="200" />
+						<property name="idleConnectionTestPeriod" value="60" />
+						<property name="maxPoolSize" value="200" />
+						<property name="initialPoolSize" value="20" />
+						<property name="minPoolSize" value="20" />
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	<!-- 配置支持多种数据库的dao操作，如果只有一种数据库，不需要multiDaoSupport -->
+	<bean id="daoSupport" class="com.hk.frame.dao.query2.MultiDaoSupport">
+		<property name="daoSupportList">
+			<list>
+				<!-- mysql 数据库 -->
+				<bean class="com.hk.frame.dao.query2.MysqlDaoSupport">
+					<property name="dataSource" ref="dataSource" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+	<!-- 定义的单种数据库daosupport -->
+	<bean class="com.hk.frame.dao.query2.MysqlDaoSupport">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 创建查询工具类 -->
+	<bean id="hkObjQuery" class="com.hk.frame.dao.query2.HkObjQuery">
+		<!-- 注入daosupport -->
+		<property name="daoSupport" ref="daoSupport" />
+		<property name="resultSetDataInfoCreater">
+			<bean class="com.hk.frame.dao.query2.ResultSetDataInfoCreater" />
+		</property>
+		<property name="objectSqlInfoCreater">
+			<bean id="objectSqlInfoCreater" class="com.hk.frame.dao.query2.ObjectSqlInfoCreater">
+				<property name="infos">
+					<list>
+						<!-- 配置数据表与类的对应关系(格式为:数据表对应类名;分区分析器的类名) -->
+						<value>bean.TestUser;query.TestUserDbPartitionHelper</value>
+						<value>bean.Member;query.MemberDbPartitionHelper</value>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<!-- 定义事务处理 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+</beans>

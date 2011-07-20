@@ -1,0 +1,65 @@
+<!-- 请在 web.xml中添加 -->
+	<!-- 1，加载spring applicationContext.xml，文件名称可自定义 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/classes/applicationContext.xml</param-value>
+	</context-param>
+
+	<!-- 2，启动spring -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- 3，添加过滤器，目的是为了对上传文件与HttpServletRequest,HttpServletResponse进行包装 -->
+	<filter>
+		<filter-name>HttpWrapperFilter</filter-name>
+		<filter-class>cactus.web.action.HttpWrapperFilter</filter-class>
+	</filter>
+
+	<!-- 4，添加运行过滤器，进行程序解析 -->
+	<filter>
+		<filter-name>ActionFilter</filter-name>
+		<filter-class>cactus.web.action.ActionFilter</filter-class>
+	</filter>
+
+	<!-- 5，添加过滤器的url匹配，此匹配应该放到编码过滤器之后，其他过滤器之前 -->
+	<filter-mapping>
+		<filter-name>HttpWrapperFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+	<!-- 6，添加过滤器的url匹配，此匹配应该放到所有过滤器之后 -->
+	<filter-mapping>
+		<filter-name>ActionFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+
+	<!-- 在spring的配置文件中添加 -->
+	<!-- 1，启动annotation方式 -->
+	<context:annotation-config />
+	<!-- 2，配置工具类 -->
+	<bean id="hkUtil" class="cactus.util.HkUtil" />
+	<!-- 3，添加配置信息 -->
+	<bean id="webCnf" class="cactus.web.action.WebCnf">
+		<!-- 设置是否需要限制url的文件上传，true:之允许配置过的uri接受文件上传，false:允许任意url接受文件上传 -->
+		<property name="mustCheckUpload" value="true"></property>
+		<!-- 设置对应uri的文件上传，以及大小限制，如果设置了 mustCheckUpload=true，则，只有以下的uri才允许文件上传 -->
+		<property name="fileUploadCheckUriCnfList">
+			<list>
+				<!-- 格式为取出[requestContextPath之后的uri]:[文件大小(单位M)] -->
+				<value>/user_list.do:80</value>
+			</list>
+		</property>
+		<!-- 配置文件上传的临时目录 -->
+		<property name="uploadFileTempPath" value="/cactustemp/"></property>
+		<!-- 配置action的扫描目录，目录可以深度扫描，只需要定义根目录 -->
+		<property name="scanPathList">
+			<list>
+				<value>iwant.web</value>
+			</list>
+		</property>
+		<!-- 匹配的url后缀，可以不使用后缀，如果不使用，就不需要配置此属性  -->
+		<property name="url_extension" value=".do" />
+	</bean>
